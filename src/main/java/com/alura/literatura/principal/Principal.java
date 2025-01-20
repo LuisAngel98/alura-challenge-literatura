@@ -1,17 +1,23 @@
 package com.alura.literatura.principal;
 
-import com.alura.literatura.model.ApiResponse;
-import com.alura.literatura.model.DatosLibro;
+import com.alura.literatura.model.*;
+import com.alura.literatura.repository.IAutorRepository;
+import com.alura.literatura.repository.ILibroRepository;
 import com.alura.literatura.service.ConsumoAPI;
 import com.alura.literatura.service.ConvierteDatos;
+import com.alura.literatura.service.LibroService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.Scanner;
 
+@Component
 public class Principal {
     private Scanner teclado = new Scanner(System.in);
-    private ConsumoAPI consumoApi = new ConsumoAPI();
-    private final String URL_BASE = "https://gutendex.com/books";
-    private ConvierteDatos conversor = new ConvierteDatos();
+
+    @Autowired
+    private LibroService libroService;
 
     public void muestraElMenu() {
         var opcion = -1;
@@ -36,7 +42,7 @@ public class Principal {
 
             switch (opcion) {
                 case 1:
-                    buscarLibroPorTitulo();
+                    libroService.buscarLibroPorTitulo();
                     break;
                 case 0:
                     System.out.println("Cerrando la aplicación...");
@@ -46,19 +52,6 @@ public class Principal {
             }
         }
 
-    }
-    //Buscar en la api
-    private void buscarLibroPorTitulo() {
-        System.out.println("Ingresar el nombre del libro que desea buscar");
-        var nombreLibro = teclado.nextLine();
-        var json = consumoApi.obtenerDatos(URL_BASE + "?search=" + nombreLibro.replace(" ", "+"));
-        ApiResponse datos = conversor.obtenerDatos(json, ApiResponse.class);
-        if (datos.results().isEmpty())
-        {
-            System.out.println("Libro no encontrado....");
-            return;
-        }
-        System.out.println(datos.results().get(0));
     }
 }
 
