@@ -26,21 +26,12 @@ public class LibroService {
     @Autowired
     private ILibroRepository libroRepository;
 
-    public void buscarLibroPorTitulo() {
-        System.out.println("Ingresar el nombre del libro que desea buscar");
-        var nombreLibro = teclado.nextLine();
-        var json = consumoApi.obtenerDatos(URL_BASE + "?search=" + nombreLibro.replace(" ", "+"));
-        ApiResponse datos = conversor.obtenerDatos(json, ApiResponse.class);
-        if (datos.results().isEmpty())
-        {
+    public void imprimirLibroBuscado(){
+        var libro = buscarLibroPorTitulo();
+        if ( libro == null){
             System.out.println("Libro no encontrado....");
-            return;
         }
-        //Obtenemos el primer libro de la lista de libros que devuelve la api
-        DatosLibro libroBuscado = datos.results().get(0);
-        System.out.println(libroBuscado);
-        var libro = guardarLibro(libroBuscado);
-        System.out.println(libro);////////////////////////////
+        System.out.println(libro);
     }
     public void imprimirLibros(){
         listarLibros().forEach(System.out::println);
@@ -48,15 +39,34 @@ public class LibroService {
     public void imprimirLibrosPorIdioma(String idioma){
         listarLibrosPorIdioma(idioma).forEach(System.out::println);
     }
-    public Libro guardarLibro(DatosLibro datosLibro){
+    private LibroDTO buscarLibroPorTitulo() {
+        System.out.println("Ingresar el nombre del libro que desea buscar");
+        var nombreLibro = teclado.nextLine();
+        var json = consumoApi.obtenerDatos(URL_BASE + "?search=" + nombreLibro.replace(" ", "+"));
+        ApiResponse datos = conversor.obtenerDatos(json, ApiResponse.class);
+
+        if (datos.results().isEmpty()) return null;
+
+        //Obtenemos el primer libro de la lista de libros que devuelve la api
+        DatosLibro libroBuscado = datos.results().get(0);
+
+        var libro = guardarLibro(libroBuscado);
+        return new LibroDTO(
+                libro.getTitulo(),
+                libro.getAutor().getNombre(),
+                libro.getIdioma(),
+                libro.getNumeroDeDescargas()
+        );
+    }
+
+    private Libro guardarLibro(DatosLibro datosLibro){
         Optional<Libro> libroExistente = libroRepository.findByTituloContainsIgnoreCase(datosLibro.titulo());
 
         if (libroExistente.isPresent()) {
-            // Si el libro ya existe, no lo guardamos y cortamos el flujo
-            System.out.println("No se puede registrar el mismo libro mas de una vez");
+            // Si el libro ya existe solo lo devolvemos sin registrar
             return libroExistente.get();
         }
-        // Obtener o crear el primer autor de la lista de autores
+        // Crear el autor si no exist
         Autor autor = obtenerAutor(datosLibro.autores().get(0));
         Libro libro = new Libro(datosLibro);
         libro.setAutor(autor);
@@ -65,16 +75,11 @@ public class LibroService {
     }
     private Autor obtenerAutor(DatosAutor datosAutor) {
         Optional<Autor> autorExistente = autorRepository.findByNombreContainsIgnoreCase(datosAutor.nombre());
-
         // Si existe, lo devolvemos; si no, lo guardamos
         return autorExistente.orElseGet(() -> autorRepository.save(new Autor(datosAutor)));
     }
-    // Listar libros registrados
-    public List<LibroDTO> listarLibros() {
-        // Obtenemos todos los libros de la base de datos
+    private List<LibroDTO> listarLibros() {
         List<Libro> libros = libroRepository.findAll();
-
-        // Convertimos la lista de entidades Libro a DTOs
         return libros.stream()
                 .map(libro -> new LibroDTO(
                         libro.getTitulo(),
@@ -84,9 +89,8 @@ public class LibroService {
                 ))
                 .collect(Collectors.toList());
     }
-    public List<LibroDTO> listarLibrosPorIdioma(String idioma) {
+    private List<LibroDTO> listarLibrosPorIdioma(String idioma) {
         List<Libro> libros = libroRepository.findByIdioma(idioma);
-
         return libros.stream()
                 .map(libro -> new LibroDTO(
                         libro.getTitulo(),

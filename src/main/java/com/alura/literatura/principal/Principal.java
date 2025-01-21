@@ -43,7 +43,7 @@ public class Principal {
             teclado.nextLine();
             switch (opcion) {
                 case 1:
-                    libroService.buscarLibroPorTitulo();
+                    libroService.imprimirLibroBuscado();
                     break;
                 case 2:
                     libroService.imprimirLibros();
