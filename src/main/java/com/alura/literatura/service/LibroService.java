@@ -30,6 +30,7 @@ public class LibroService {
         var libro = buscarLibroPorTitulo();
         if ( libro == null){
             System.out.println("Libro no encontrado....");
+            return;
         }
         System.out.println(libro);
     }
