@@ -16,7 +16,7 @@ public class Autor {
     private int fechaNacimiento;
     private int fechaFallecimiento;
 
-    @OneToMany(mappedBy = "autor")
+    @OneToMany(mappedBy = "autor", fetch = FetchType.EAGER)
     private List<Libro> libros;
 
     public Autor() {
