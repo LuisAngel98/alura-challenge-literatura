@@ -13,12 +13,11 @@ public class Autor {
     private Long id;
 
     private String nombre;
-
     private int fechaNacimiento;
-
     private int fechaFallecimiento;
-    @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<Libro> librosDelAutor = new ArrayList<>();
+
+    @OneToMany(mappedBy = "autor")
+    private List<Libro> libros;
 
     public Autor() {
     }
@@ -61,11 +60,11 @@ public class Autor {
         this.fechaFallecimiento = fechaFallecimiento;
     }
 
-    public List<Libro> getLibrosDelAutor() {
-        return librosDelAutor;
+    public List<Libro> getLibros() {
+        return libros;
     }
 
-    public void setLibrosDelAutor(List<Libro> librosDelAutor) {
-        this.librosDelAutor = librosDelAutor;
+    public void setLibros(List<Libro> librosDelAutor) {
+        this.libros = librosDelAutor;
     }
 }

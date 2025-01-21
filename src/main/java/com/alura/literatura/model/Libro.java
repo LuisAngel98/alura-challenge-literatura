@@ -2,6 +2,8 @@ package com.alura.literatura.model;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "libros")
 public class Libro {
@@ -14,16 +16,15 @@ public class Libro {
     private String titulo;
 
     @ManyToOne
-    @JoinColumn(name = "autor_id", nullable = false)
+    @JoinColumn(name = "autor_id")  // La columna que referencia al autor en la tabla libro
     private Autor autor;
 
     public Libro(){
     }
-    public Libro(DatosLibro datosLibro, Autor autor) {
+    public Libro(DatosLibro datosLibro) {
         this.titulo = datosLibro.titulo();
-        this.idioma = datosLibro.idiomas().get(0);
+        this.idioma = datosLibro.idiomas().get(0);//Solo guardar un idioma
         this.numeroDeDescargas= datosLibro.descargas();
-        this.autor=autor;
     }
 
     public long getId() {

@@ -6,6 +6,7 @@ import com.alura.literatura.repository.ILibroRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -16,6 +17,8 @@ public class LibroService {
     private ConvierteDatos conversor = new ConvierteDatos();
     private Scanner teclado = new Scanner(System.in);
 
+    @Autowired
+    private AutorService autorService;
     @Autowired
     private IAutorRepository autorRepository;
     @Autowired
@@ -33,38 +36,34 @@ public class LibroService {
         }
         DatosLibro libroBuscado = datos.results().get(0);
         System.out.println(libroBuscado);
-//        DatosAutor datosAutor = libroBuscado.autores().get(0);
-//
-//        Optional<Libro> libroExiste = libroRepository.findByTituloContainsIgnoreCase(libroBuscado.titulo());
-//        if (libroExiste.isPresent()){
-//            System.out.println("El libro ya se encuentra en la Base de Datos!");
-//            System.out.println(libroExiste);
-//            return;
-//        }
-//        Autor autorExiste = autorRepository.findByNombreContainsIgnoreCase(datosAutor.nombre());
-//        if (autorExiste != null){
-//            var libro = guardarLibro(libroBuscado, autorExiste);
-//            libroRepository.save(libro);
-//            System.out.println("---------- LIBRO REGISTRADO ----------");
-//            System.out.println(libro);
-//        }
-//        else {
-//            //Acción de registro desde 0
-//            Autor autor = new Autor(datosAutor);
-//            autor = autorRepositorio.save(autor);
-//            libro = registrarLibroEnBD(datosLibro, autor);
-//            libroRepositorio.save(libro);
-//            System.out.println("---------- LIBRO REGISTRADO ----------");
-//            System.out.println(libro);
-//        }
-    }
-    public Libro guardarLibro(DatosLibro datosLibro, Autor autor){
-        if(autor != null){
-            return new Libro(datosLibro, autor);
+        var libro = guardarLibro(libroBuscado);
+        if (libro != null){
+            System.out.println("Libro ya existe");
         }
-        else {
-            System.out.println("El campo 'autor' se encuentra vacío, no se puede crear el Libro ");
-            return null;
+    }
+    public Libro guardarLibro(DatosLibro datosLibro){
+        Optional<Libro> libroExistente = libroRepository.findByTituloContainsIgnoreCase(datosLibro.titulo());
+
+        if (libroExistente.isPresent()) {
+            // Si el libro ya existe, no lo guardamos y cortamos el flujo
+            return libroExistente.get();
+        }
+        // Obtener o crear el primer autor de la lista de autores
+        Autor autor = obtenerAutor(datosLibro.autores().get(0));
+        Libro libro = new Libro(datosLibro);
+        libro.setAutor(autor);
+
+        return libroRepository.save(libro);
+    }
+    private Autor obtenerAutor(DatosAutor datosAutor) {
+        Optional<Autor> autorExistente = autorRepository.findByNombreContainsIgnoreCase(datosAutor.nombre());
+
+        // Si existe, lo devolvemos; si no, lo guardamos
+        return autorExistente.orElseGet(() -> autorRepository.save(new Autor(datosAutor)));
+    }
+    public void guardarLibros(List<DatosLibro> listaDatosLibros) {
+        for (DatosLibro datosLibro : listaDatosLibros) {
+            guardarLibro(datosLibro);  // Guarda el libro si no existe
         }
     }
 }
